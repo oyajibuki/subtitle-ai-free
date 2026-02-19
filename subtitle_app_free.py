@@ -66,7 +66,7 @@ def load_model(model_size):
 st.set_page_config(page_title="AIテロップ自動生成ツール (Free Edition)", layout="centered")
 
 st.title("🎥 AIテロップ自動生成ツール\n(Free Edition)")
-st.info("これは**無料体験版**です。機能制限があります。[Pro版へのアップグレードはこちら](#)")
+st.info("これは**無料体験版**です。機能制限があります。[Pro版へのお問い合わせはこちら](https://oyajibuki.github.io/form/)")
 
 st.markdown("""
 ### ⚠️ 制限事項
