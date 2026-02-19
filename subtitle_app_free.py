@@ -203,7 +203,13 @@ if uploaded_file is not None:
     
     if temp_file_path:
         # 動画プレビュー
-        st.video(temp_file_path) if any(ext in uploaded_file.name for ext in ["mp4", "mov"]) else st.audio(temp_file_path)
+        # 動画プレビュー
+        if any(ext in uploaded_file.name for ext in ["mp4", "mov"]):
+            st.video(temp_file_path)
+        else:
+            st.audio(temp_file_path)
+
+        st.markdown("### 文字起こし開始")
         
         # 長さチェック
         duration = get_video_duration(temp_file_path)
