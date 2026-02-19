@@ -109,6 +109,26 @@ with st.sidebar:
     - 動画の長さ・サイズ無制限
     """)
 
+    st.divider()
+    
+    # ---------------------------
+    # GAS Visitor Counter
+    # ---------------------------
+    # セッション内で1回だけカウントアップ＆取得
+    if 'visitor_count' not in st.session_state:
+        try:
+            import urllib.request
+            # ユーザー提供のGAS URL
+            url = "https://script.google.com/macros/s/AKfycbznxYkj5ixnK_pHkGR8LUYhEYdvSYpaiF3x4LaZy964wlu068oak1X1uuIiyqCEtGWF/exec?page=subtitle-ai-free"
+            with urllib.request.urlopen(url) as response:
+                data = response.read().decode('utf-8')
+                st.session_state['visitor_count'] = data
+        except Exception:
+            st.session_state['visitor_count'] = None
+
+    if st.session_state['visitor_count']:
+        st.caption(f"👀 Visitors: {st.session_state['visitor_count']}")
+
 # メインエリア
 # メインエリア
 
