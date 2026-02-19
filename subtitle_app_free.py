@@ -118,15 +118,16 @@ with st.sidebar:
     if 'visitor_count' not in st.session_state:
         try:
             import urllib.request
+            import json
             # ユーザー提供のGAS URL
             url = "https://script.google.com/macros/s/AKfycbznxYkj5ixnK_pHkGR8LUYhEYdvSYpaiF3x4LaZy964wlu068oak1X1uuIiyqCEtGWF/exec?page=subtitle-ai-free"
             with urllib.request.urlopen(url) as response:
-                data = response.read().decode('utf-8')
-                st.session_state['visitor_count'] = data
+                data = json.loads(response.read().decode('utf-8'))
+                st.session_state['visitor_count'] = data['count']
         except Exception:
             st.session_state['visitor_count'] = None
 
-    if st.session_state['visitor_count']:
+    if st.session_state['visitor_count'] is not None:
         st.caption(f"👀 Visitors: {st.session_state['visitor_count']}")
 
 # メインエリア
