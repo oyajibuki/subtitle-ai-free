@@ -1,0 +1,9 @@
+__pycache__/
+temp_files/
+ffmpeg.exe
+*.bat
+.streamlit/secrets.toml
+debug_ffmpeg.py
+check_moviepy.py
+inspect_moviepy.py
+check_install.py
