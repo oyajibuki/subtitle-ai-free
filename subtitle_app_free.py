@@ -24,12 +24,15 @@ def format_timestamp(seconds):
 
 def create_srt_content(df):
     """データフレームからSRT形式の文字列を生成"""
-    srt_content = ""
+    # 無料版用の透かし広告を先頭に強制追加
+    srt_content = "1\n00:00:00,000 --> 00:00:05,000\n[Created by AI Subtitle Free]\n\n"
+    
     for idx, row in df.iterrows():
         start = format_timestamp(row['start'])
         end = format_timestamp(row['end'])
         text = row['text']
-        srt_content += f"{idx + 1}\n{start} --> {end}\n{text}\n\n"
+        # 連番を+2する（1番目は透かし用）
+        srt_content += f"{idx + 2}\n{start} --> {end}\n{text}\n\n"
     return srt_content
 
 def save_uploaded_file(uploaded_file):
@@ -70,7 +73,7 @@ st.info("これは**無料体験版**です。機能制限があります。[Pro
 
 st.markdown("""
 ### ⚠️ 制限事項
-- **動画の長さ**: 10分 (600秒) まで
+- **動画の長さ**: 5分 (300秒) まで
 - **ファイルサイズ**: 100MB まで
 - **AIモデル**: tiny, base のみ
 - **出力形式**: SRT (字幕ファイル) のみ
@@ -167,10 +170,26 @@ components.html(
     width=0
 )
 
-# CSSバックアップ (多重指定)
+# CSSバックアップ (多重指定) と ウォーターマークの追加
 st.markdown(
     """
     <style>
+    /* 画面全体に斜めのウォーターマークを表示 */
+    .watermark-bg {
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%) rotate(-35deg);
+        font-size: 6vw;
+        color: rgba(150, 150, 150, 0.12);
+        z-index: 999999;
+        pointer-events: none;
+        white-space: nowrap;
+        user-select: none;
+        font-weight: 900;
+        letter-spacing: 5px;
+    }
+    
     /* 小さい文字をとにかく消す */
     [data-testid="stFileUploader"] small {
         display: none !important;
@@ -187,12 +206,13 @@ st.markdown(
         font-size: 14px !important; /* 通常テキスト用 */
     }
     </style>
+    <div class="watermark-bg">Created by AI Subtitle Free</div>
     """,
     unsafe_allow_html=True
 )
 
 st.caption("対応形式: mp4, mov, wav, mp3, m4a, mk4")
-uploaded_file = st.file_uploader("動画または音声ファイルをドラッグ＆ドロップ (10分以内 / 100MBまで)", type=["mp4", "mov", "wav", "mp3", "m4a", "mk4"])
+uploaded_file = st.file_uploader("動画または音声ファイルをドラッグ＆ドロップ (5分以内 / 100MBまで)", type=["mp4", "mov", "wav", "mp3", "m4a", "mk4"])
 
 if uploaded_file is not None:
     # サイズチェック (100MB)
@@ -213,8 +233,8 @@ if uploaded_file is not None:
         
         # 長さチェック
         duration = get_video_duration(temp_file_path)
-        if duration > 600: # 10分 = 600秒
-            st.error(f"⚠️ 動画の長さが制限を超えています ({int(duration)}秒)。\nFree版では10分 (600秒) 以内の動画のみ処理可能です。")
+        if duration > 300: # 5分 = 300秒
+            st.error(f"⚠️ 動画の長さが制限を超えています ({int(duration)}秒)。\nFree版では5分 (300秒) 以内の動画のみ処理可能です。")
         else:
             # 文字起こし実行ボタン
             if st.button("🚀 文字起こし開始 (Free)", type="primary"):
