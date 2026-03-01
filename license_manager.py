@@ -12,22 +12,53 @@ try:
 except ImportError:
     stripe = None
 
-def verify_license_key(session_id: str) -> bool:
-    """StripeのCheckout Session IDを検証し、支払い済みかチェックする"""
-    if not session_id:
+def verify_license_key(license_key: str) -> bool:
+    """GASのエンドポイントにライセンスキーを検証し、払い済みかチェックする"""
+    if not license_key:
         return False
         
     # 特別なテスト用キーを追加 (Stripe設定なしでも通るようにする)
-    if session_id == "test_key_123":
+    if license_key == "test_key_123":
         return True
     
-    if not session_id.startswith("cs_"):
+    # 形式の簡易チェック (CC-TEST-XXXX-XXXX-XXXX)
+    if not license_key.startswith("CC-"):
+        # 古いStripeセッションID (`cs_test_...`) の下位互換性対応
+        if license_key.startswith("cs_"):
+            return _verify_legacy_stripe(license_key)
         return False
     
-    # 実際のStripeチェック
+    # GASの評価
+    try:
+        import urllib.request
+        import json
+        
+        # デフォルトのGAS URLを設定 (環境変数やSecretsでの上書きも可能)
+        default_gas_url = "https://script.google.com/macros/s/AKfycbw-GQUSSCTIbSRLMhaItLX6GZSi0iemw5Vaxo0oKB4Rg9OOf1xJ4UEBJHczY7-3LWPj_Q/exec"
+        GAS_URL = os.environ.get("GAS_LICENSE_URL", st.secrets.get("GAS_LICENSE_URL", default_gas_url))
+        
+        if not GAS_URL:
+             st.error("設定エラー: GASの認証URL (GAS_LICENSE_URL) が設定されていません。")
+             return False
+             
+        # GASの doGet にリクエストを送る
+        url = f"{GAS_URL}?license_key={license_key}"
+        req = urllib.request.Request(url)
+        with urllib.request.urlopen(req, timeout=5) as response:
+            data = json.loads(response.read().decode('utf-8'))
+            
+            if data.get("status") == "success" and data.get("valid") is True:
+                return True
+                
+        return False
+    except Exception as e:
+        print(f"License verification error: {e}")
+        return False
+        
+def _verify_legacy_stripe(session_id: str) -> bool:
+    """過去のStripe Session ID用の古いバリデーション"""
     if stripe is None or not stripe.api_key:
         return False
-
     try:
         session = stripe.checkout.Session.retrieve(session_id)
         if session and session.payment_status == "paid":
