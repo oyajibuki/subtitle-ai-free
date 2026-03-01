@@ -465,6 +465,8 @@
                 usage_pro: "✓ Pro Active (Unlimited / High Quality Model)",
                 upgrade_btn: "Upgrade to Pro",
                 enter_license: "Already have a license? Enter here.",
+                btn_srt: "Download SRT",
+                btn_ass: "Download ASS",
                 modal_title: "Enter License Key",
                 modal_desc: "Paste your Stripe License Key (e.g. cs_test_...) to unlock Pro features.",
                 activate: "Activate",
@@ -485,6 +487,8 @@
                 usage_pro: "✓ Pro版 アクティブ (回数無制限 / 高精度モデル利用可)",
                 upgrade_btn: "Pro版へアップグレード",
                 enter_license: "ライセンスをお持ちの方はこちら",
+                btn_srt: "SRTを保存",
+                btn_ass: "ASSを保存",
                 modal_title: "ライセンスキーの入力",
                 modal_desc: "購入後に発行されたライセンスキー（例: cs_test_...）を入力してください。",
                 activate: "有効化",
@@ -591,6 +595,10 @@
             document.getElementById('t-modal-desc').innerText = t.modal_desc;
             document.getElementById('t-btn-activate').innerText = t.activate;
             document.getElementById('t-btn-cancel').innerText = t.cancel;
+
+            // Downloads
+            if (document.getElementById('t-btn-srt')) document.getElementById('t-btn-srt').innerText = t.btn_srt;
+            if (document.getElementById('t-btn-ass')) document.getElementById('t-btn-ass').innerText = t.btn_ass;
         }
     </script>
 
@@ -656,6 +664,15 @@
     <!-- Success/Error Message Area -->
     <div id="statusMessage"
         style="margin-top: 16px; font-weight: 500; font-size: 0.95rem; text-align: center; display: none;"></div>
+
+    <!-- Download Buttons (Hidden by default) -->
+    <div id="downloadArea"
+        style="display: none; justify-content: center; gap: 16px; margin-top: 24px; animation: fadeInUp 0.5s ease-out;">
+        <button class="btn btn-primary" id="t-btn-srt"
+            style="background: #059669; box-shadow: 0 4px 12px rgba(5, 150, 105, 0.3);">SRTを保存</button>
+        <button class="btn btn-primary" id="t-btn-ass"
+            style="background: #8b5cf6; box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3);">ASSを保存</button>
+    </div>
 
     <!-- License & Upgrade Area -->
     <div class="license-area">
@@ -753,19 +770,34 @@
                 const data = await response.json();
 
                 if (data.success) {
-                    // Trigger SRT File Download
-                    const blob = new Blob([data.srt_content], { type: 'text/plain;charset=utf-8' });
-                    const url = URL.createObjectURL(blob);
-                    const a = document.createElement('a');
-                    a.href = url;
-                    a.download = data.filename || 'subtitles.srt';
-                    document.body.appendChild(a);
-                    a.click();
-                    document.body.removeChild(a);
-                    URL.revokeObjectURL(url);
-
                     statusMsg.style.color = '#059669';
-                    statusMsg.innerText = '🎉 Transcription complete! File downloading...';
+                    statusMsg.innerText = '🎉 Transcription complete!';
+
+                    // Show download buttons
+                    const dlArea = document.getElementById('downloadArea');
+                    dlArea.style.display = 'flex';
+
+                    // Setup SRT Download
+                    document.getElementById('t-btn-srt').onclick = () => {
+                        const blob = new Blob([data.srt_content], { type: 'text/plain;charset=utf-8' });
+                        const url = URL.createObjectURL(blob);
+                        const a = document.createElement('a');
+                        a.href = url;
+                        a.download = data.srt_filename;
+                        a.click();
+                        URL.revokeObjectURL(url);
+                    };
+
+                    // Setup ASS Download
+                    document.getElementById('t-btn-ass').onclick = () => {
+                        const blob = new Blob([data.ass_content], { type: 'text/plain;charset=utf-8' });
+                        const url = URL.createObjectURL(blob);
+                        const a = document.createElement('a');
+                        a.href = url;
+                        a.download = data.ass_filename;
+                        a.click();
+                        URL.revokeObjectURL(url);
+                    };
                 } else {
                     throw new Error(data.error || 'Unknown error occurred.');
                 }
