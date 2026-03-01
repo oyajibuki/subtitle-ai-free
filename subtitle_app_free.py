@@ -1,6 +1,18 @@
 import streamlit as st
-import whisper
+import sys
 import os
+
+# PyInstallerの --noconsole 時における sys.stdout / sys.stderr の None エラー対策
+class DummyStream:
+    def write(self, *args, **kwargs): pass
+    def flush(self, *args, **kwargs): pass
+
+if sys.stdout is None:
+    sys.stdout = DummyStream()
+if sys.stderr is None:
+    sys.stderr = DummyStream()
+
+import whisper
 import pandas as pd
 from datetime import timedelta
 from moviepy import VideoFileClip
@@ -223,11 +235,14 @@ if uploaded_file is not None:
     
     if temp_file_path:
         # 動画プレビュー
-        # 動画プレビュー
-        if any(ext in uploaded_file.name for ext in ["mp4", "mov"]):
-            st.video(temp_file_path)
-        else:
-            st.audio(temp_file_path)
+        st.markdown("### 確認用プレビュー")
+        # プレビュー画面を小さく表示するためにカラム分割を使用
+        col_preview, col_empty = st.columns([1, 2])
+        with col_preview:
+            if any(ext in uploaded_file.name for ext in ["mp4", "mov"]):
+                st.video(temp_file_path)
+            else:
+                st.audio(temp_file_path)
 
         st.markdown("### 文字起こし開始")
         
