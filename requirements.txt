@@ -4,4 +4,4 @@ moviepy
 pandas
 pysrt
 numpy
-supabase
+stripe
