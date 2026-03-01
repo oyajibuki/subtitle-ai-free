@@ -41,7 +41,7 @@ async def read_root():
     return "<h1>Landing page not found</h1>"
 
 @app.post("/transcribe")
-async def transcribe_audio(
+def transcribe_audio(
     file: UploadFile = File(...),
     target_lang: str = Form("auto"),
     model_size: str = Form("base")
@@ -93,4 +93,4 @@ async def transcribe_audio(
         return JSONResponse({"success": False, "error": str(e)}, status_code=500)
 
 if __name__ == "__main__":
-    uvicorn.run("app:app", host="0.0.0.0", port=7860, reload=True)
+    uvicorn.run("app:app", host="0.0.0.0", port=7860)

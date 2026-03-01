@@ -13,6 +13,9 @@ COPY ./requirements.txt .
 RUN pip install --no-cache-dir --upgrade pip setuptools wheel
 RUN pip install --no-cache-dir --upgrade -r requirements.txt
 
+# Pre-download Whisper models
+RUN python3 -c "import whisper; whisper.load_model('base')"
+
 # Create non-root user for Hugging Face Spaces
 RUN useradd -m -u 1000 user
 USER user

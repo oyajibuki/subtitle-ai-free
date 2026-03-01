@@ -52,6 +52,7 @@
             font-weight: 800;
             background: linear-gradient(135deg, var(--primary), var(--secondary));
             -webkit-background-clip: text;
+            background-clip: text;
             -webkit-text-fill-color: transparent;
             margin-bottom: 12px;
             letter-spacing: -1px;
@@ -611,7 +612,7 @@
 
     <!-- Upload Area -->
     <div class="upload-area" id="dropZone"
-        onclick="if(e.target.tagName !== 'VIDEO' && e.target.tagName !== 'AUDIO') document.getElementById('fileInput').click()">
+        onclick="if(event.target.tagName !== 'VIDEO' && event.target.tagName !== 'AUDIO') document.getElementById('fileInput').click()">
         <span class="upload-icon">📁</span>
         <p class="upload-text" id="t-upload">動画/音声をドロップするか <strong>クリックして選択</strong></p>
         <input type="file" id="fileInput" accept="video/*,audio/*">
