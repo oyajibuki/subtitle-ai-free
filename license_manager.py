@@ -98,10 +98,7 @@ def render_license_ui(lang: str):
                 st.success(get_text(lang, "auth_success"))
                 st.rerun()
             else:
-                if not stripe.api_key and license_key != "test_key_123":
-                    st.error(get_text(lang, "auth_no_key"))
-                else:
-                    st.error(get_text(lang, "auth_failed"))
+                st.error(get_text(lang, "auth_failed"))
                  
     return False
 
