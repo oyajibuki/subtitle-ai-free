@@ -17,3 +17,4 @@ start_pro.bat
 build_pro.bat
 AI_Subtitle_Pro.spec
 dist/
+*.zip
