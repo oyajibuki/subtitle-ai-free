@@ -1,0 +1,837 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Subtitle</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+JP:wght@400;600;700&display=swap"
+        rel="stylesheet">
+    <style>
+        :root {
+            --primary: #3b82f6;
+            --primary-hover: #2563eb;
+            --secondary: #8b5cf6;
+            --bg-color: #f8fafc;
+            --surface: #ffffff;
+            --text-main: #1e293b;
+            --text-muted: #64748b;
+            --border: #e2e8f0;
+        }
+
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', 'Noto Sans JP', sans-serif;
+            background: var(--bg-color);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 40px 20px 80px;
+        }
+
+        .header-section {
+            text-align: center;
+            margin-bottom: 40px;
+            animation: fadeInDown 0.6s ease-out;
+        }
+
+        h1 {
+            font-size: 3rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 12px;
+            letter-spacing: -1px;
+        }
+
+        .subtitle {
+            font-size: 1.1rem;
+            color: var(--text-muted);
+            font-weight: 500;
+        }
+
+        /* Upload Area */
+        .upload-area {
+            background: var(--surface);
+            border: 2px dashed #cbd5e1;
+            border-radius: 20px;
+            padding: 48px 40px;
+            text-align: center;
+            max-width: 600px;
+            width: 100%;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            cursor: pointer;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+            animation: fadeInUp 0.7s ease-out;
+        }
+
+        .upload-area:hover,
+        .upload-area.drag-over {
+            border-color: var(--primary);
+            background: #eff6ff;
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(37, 99, 235, 0.1);
+        }
+
+        .upload-area input[type="file"] {
+            display: none;
+        }
+
+        .upload-icon {
+            font-size: 3rem;
+            margin-bottom: 16px;
+            display: inline-block;
+            transition: transform 0.3s;
+        }
+
+        .upload-area:hover .upload-icon {
+            transform: scale(1.1);
+        }
+
+        .upload-text {
+            font-size: 1.05rem;
+            color: var(--text-muted);
+        }
+
+        .upload-text strong {
+            color: var(--primary);
+        }
+
+        /* Selectors */
+        .controls-panel {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 24px;
+            margin-top: 24px;
+            width: 100%;
+            max-width: 600px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            justify-content: space-between;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+            animation: fadeInUp 0.8s ease-out;
+        }
+
+        .control-group {
+            flex: 1;
+            min-width: 200px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .control-group label {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        select {
+            background: #f8fafc;
+            color: var(--text-main);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 12px 16px;
+            font-family: inherit;
+            font-size: 0.95rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            appearance: none;
+            background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+            background-repeat: no-repeat;
+            background-position: right 12px center;
+            background-size: 16px;
+        }
+
+        select:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+        }
+
+        /* Buttons */
+        .action-bar {
+            margin-top: 32px;
+            display: flex;
+            justify-content: center;
+            width: 100%;
+            animation: fadeInUp 0.9s ease-out;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            padding: 16px 40px;
+            border: none;
+            border-radius: 12px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            font-family: inherit;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: #fff;
+            box-shadow: 0 10px 20px -5px rgba(59, 130, 246, 0.4);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 25px -5px rgba(59, 130, 246, 0.5);
+        }
+
+        .btn-primary:active {
+            transform: translateY(0);
+        }
+
+        .btn-primary:disabled {
+            background: #cbd5e1;
+            box-shadow: none;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* License / Pro UI */
+        .license-area {
+            margin-top: 40px;
+            text-align: center;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 24px 32px;
+            width: 100%;
+            max-width: 600px;
+            animation: fadeInUp 1s ease-out;
+        }
+
+        .usage-status {
+            font-size: 0.95rem;
+            font-weight: 500;
+            color: var(--text-muted);
+            margin-bottom: 16px;
+        }
+
+        .usage-status .highlight {
+            color: var(--primary);
+            font-weight: 700;
+            font-size: 1.1rem;
+        }
+
+        .usage-status.pro {
+            color: #059669;
+            background: #d1fae5;
+            padding: 8px 16px;
+            border-radius: 20px;
+            display: inline-block;
+            margin-bottom: 0;
+            font-weight: 600;
+        }
+
+        .pro-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            align-items: center;
+        }
+
+        .btn-upgrade {
+            background: #1e293b;
+            color: #fff;
+            padding: 12px 32px;
+            border-radius: 10px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 0.95rem;
+            transition: all 0.2s;
+            display: inline-block;
+        }
+
+        .btn-upgrade:hover {
+            background: #0f172a;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .btn-link {
+            background: none;
+            border: none;
+            color: var(--primary);
+            font-size: 0.9rem;
+            font-weight: 500;
+            cursor: pointer;
+            text-decoration: underline;
+            text-underline-offset: 4px;
+        }
+
+        .btn-link:hover {
+            color: var(--primary-hover);
+        }
+
+        /* Modals */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(15, 23, 42, 0.4);
+            backdrop-filter: blur(4px);
+            z-index: 9998;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s;
+        }
+
+        .modal-overlay.active {
+            opacity: 1;
+            pointer-events: all;
+        }
+
+        .modal-box {
+            background: var(--surface);
+            border-radius: 24px;
+            padding: 40px;
+            max-width: 440px;
+            width: 90%;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+            transform: scale(0.95);
+            transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        .modal-overlay.active .modal-box {
+            transform: scale(1);
+        }
+
+        .modal-box h2 {
+            font-size: 1.5rem;
+            color: var(--text-main);
+            margin-bottom: 12px;
+            font-weight: 700;
+        }
+
+        .modal-box p {
+            font-size: 0.95rem;
+            color: var(--text-muted);
+            margin-bottom: 24px;
+            line-height: 1.5;
+        }
+
+        .modal-box input {
+            width: 100%;
+            padding: 14px 16px;
+            border: 2px solid var(--border);
+            border-radius: 12px;
+            font-size: 1.1rem;
+            font-family: monospace;
+            text-align: center;
+            margin-bottom: 20px;
+            transition: border-color 0.2s;
+        }
+
+        .modal-box input:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 12px;
+            justify-content: flex-end;
+        }
+
+        .btn-cancel {
+            background: #f1f5f9;
+            color: #475569;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 10px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        /* Language Switcher */
+        .lang-switcher {
+            position: absolute;
+            top: 24px;
+            right: 24px;
+        }
+
+        .lang-select {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            padding: 8px 16px 8px 12px;
+            border-radius: 12px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: var(--text-main);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
+            display: flex;
+            align-items: center;
+        }
+
+        /* Media Preview */
+        .media-preview-container {
+            display: none;
+            margin-top: 16px;
+            text-align: center;
+        }
+
+        .media-preview-container.active {
+            display: block;
+            animation: fadeInDown 0.4s ease-out;
+        }
+
+        .media-preview {
+            max-width: 100%;
+            max-height: 180px;
+            border-radius: 12px;
+            border: 2px solid var(--border);
+            background: #000;
+        }
+
+        /* Animations */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes spin {
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Language translation logic map -->
+    <script>
+        const i18n = {
+            en: {
+                title: "AI Subtitle",
+                subtitle: "Fast. Simple. Automagical.",
+                upload: "Drop video/audio here or <strong>click to upload</strong>",
+                target_lang: "Target Language",
+                model: "AI Model",
+                model_tiny: "Whisper Tiny (Fastest)",
+                model_base: "Whisper Base (Fast)",
+                model_small: "Whisper Small (Standard)",
+                model_large: "Whisper Large (High Quality)",
+                btn_generate: "Generate Subtitles",
+                usage_free: "Free tier: <span class='highlight'>3</span> uses left (Fast Model Only)",
+                usage_pro: "✓ Pro Active (Unlimited / High Quality Model)",
+                upgrade_btn: "Upgrade to Pro",
+                enter_license: "Already have a license? Enter here.",
+                modal_title: "Enter License Key",
+                modal_desc: "Paste your Stripe License Key (e.g. cs_test_...) to unlock Pro features.",
+                activate: "Activate",
+                cancel: "Cancel"
+            },
+            ja: {
+                title: "AI Subtitle",
+                subtitle: "速くて、簡単。全自動。",
+                upload: "動画/音声をドロップするか <strong>クリックして選択</strong>",
+                target_lang: "翻訳先の言語",
+                model: "AIモデル",
+                model_tiny: "Whisper Tiny (最速)",
+                model_base: "Whisper Base (高速)",
+                model_small: "Whisper Small (標準)",
+                model_large: "Whisper Large (高精度)",
+                btn_generate: "字幕を生成する",
+                usage_free: "無料プラン：残り <span class='highlight'>3</span> 回 (高速モデルのみ)",
+                usage_pro: "✓ Pro版 アクティブ (回数無制限 / 高精度モデル利用可)",
+                upgrade_btn: "Pro版へアップグレード",
+                enter_license: "ライセンスをお持ちの方はこちら",
+                modal_title: "ライセンスキーの入力",
+                modal_desc: "購入後に発行されたライセンスキー（例: cs_test_...）を入力してください。",
+                activate: "有効化",
+                cancel: "キャンセル"
+            },
+            zh: {
+                title: "AI Subtitle",
+                subtitle: "极速。简单。全自动。",
+                upload: "将视频/音频拖至此处或 <strong>点击上传</strong>",
+                target_lang: "目标语言",
+                model: "AI模型",
+                model_tiny: "Whisper Tiny (最快)",
+                model_base: "Whisper Base (极速)",
+                model_small: "Whisper Small (标准)",
+                model_large: "Whisper Large (高精度)",
+                btn_generate: "生成字幕",
+                usage_free: "免费额度：剩余 <span class='highlight'>3</span> 次 (仅限极速模型)",
+                usage_pro: "✓ Pro 版已激活 (无限制 / 可用高精度模型)",
+                upgrade_btn: "升级到 Pro",
+                enter_license: "已有许可证？在此输入",
+                modal_title: "输入许可证密钥",
+                modal_desc: "请输入购买后收到的许可证密钥 (例如 cs_test_...) 以解锁 Pro 功能。",
+                activate: "激活",
+                cancel: "取消"
+            },
+            hi: {
+                title: "AI Subtitle",
+                subtitle: "तेज़। सरल। स्वचालित।",
+                upload: "वीडियो/ऑडियो यहां छोड़ें या <strong>अपलोड करने के लिए क्लिक करें</strong>",
+                target_lang: "लक्ष्य भाषा",
+                model: "AI मॉडल",
+                model_tiny: "Whisper Tiny (सबसे तेज़)",
+                model_base: "Whisper Base (तेज़)",
+                model_small: "Whisper Small (मानक)",
+                model_large: "Whisper Large (उच्च गुणवत्ता)",
+                btn_generate: "उपशीर्षक बनाएं",
+                usage_free: "निःशुल्क: <span class='highlight'>3</span> उपयोग बचे हैं (केवल तेज़ मॉडल)",
+                usage_pro: "✓ Pro सक्रिय (असीमित / उच्च गुणवत्ता मॉडल)",
+                upgrade_btn: "Pro में अपग्रेड करें",
+                enter_license: "पहले से ही लाइसेंस है? यहां दर्ज करें।",
+                modal_title: "लाइसेंस कुंजी दर्ज करें",
+                modal_desc: "Pro सुविधाओं को अनलॉक करने के लिए अपनी लाइसेंस कुंजी (जैसे cs_test_...) पेस्ट करें।",
+                activate: "सक्रिय करें",
+                cancel: "रद्द करें"
+            },
+            pt: {
+                title: "AI Subtitle",
+                subtitle: "Rápido. Simples. Automático.",
+                upload: "Solte o vídeo/áudio aqui ou <strong>clique para enviar</strong>",
+                target_lang: "Idioma de Destino",
+                model: "Modelo de IA",
+                model_tiny: "Whisper Tiny (Mais Rápido)",
+                model_base: "Whisper Base (Rápido)",
+                model_small: "Whisper Small (Padrão)",
+                model_large: "Whisper Large (Alta Qualidade)",
+                btn_generate: "Gerar Legendas",
+                usage_free: "Gratuito: <span class='highlight'>3</span> usos (Apenas Modelo Rápido)",
+                usage_pro: "✓ Pro Ativo (Ilimitado / Alta Qualidade)",
+                upgrade_btn: "Atualizar para Pro",
+                enter_license: "Já tem uma licença? Insira aqui.",
+                modal_title: "Inserir Chave de Licença",
+                modal_desc: "Cole a Chave da Licença (ex: cs_test_...) para debloquear funções Pro.",
+                activate: "Ativar",
+                cancel: "Cancelar"
+            }
+        };
+
+        function setLanguage(lang) {
+            document.documentElement.lang = lang;
+            const t = i18n[lang] || i18n['en'];
+
+            document.getElementById('t-title').innerText = t.title;
+            document.getElementById('t-subtitle').innerText = t.subtitle;
+            document.getElementById('t-upload').innerHTML = "📁<br><br>" + t.upload;
+            document.getElementById('t-target-lang').innerText = t.target_lang;
+            document.getElementById('t-model').innerText = t.model;
+            document.getElementById('t-mod-tiny').innerText = t.model_tiny;
+            document.getElementById('t-mod-base').innerText = t.model_base;
+            document.getElementById('t-mod-small').innerText = t.model_small;
+            document.getElementById('t-mod-large').innerText = t.model_large;
+            document.getElementById('t-btn-gen').innerText = t.btn_generate;
+
+            // Usage/License
+            const isPro = localStorage.getItem("aisub_pro") === "true";
+            if (isPro) {
+                document.getElementById('usageStatus').innerHTML = t.usage_pro;
+                document.getElementById('usageStatus').className = "usage-status pro";
+                document.getElementById('proActions').style.display = 'none';
+                document.getElementById('modelSelect').disabled = false;
+            } else {
+                document.getElementById('usageStatus').innerHTML = t.usage_free;
+                document.getElementById('usageStatus').className = "usage-status";
+                document.getElementById('proActions').style.display = 'flex';
+                document.getElementById('t-upgrade').innerText = t.upgrade_btn;
+                document.getElementById('t-enter-license').innerText = t.enter_license;
+
+                // Lock to fast model for free users
+                document.getElementById('modelSelect').value = "base";
+                document.getElementById('modelSelect').disabled = true;
+            }
+
+            // Modal
+            document.getElementById('t-modal-title').innerText = t.modal_title;
+            document.getElementById('t-modal-desc').innerText = t.modal_desc;
+            document.getElementById('t-btn-activate').innerText = t.activate;
+            document.getElementById('t-btn-cancel').innerText = t.cancel;
+        }
+    </script>
+
+    <!-- Language Switcher -->
+    <div class="lang-switcher">
+        <select class="lang-select" id="langSelect" onchange="setLanguage(this.value)">
+            <option value="ja">🇯🇵 日本語</option>
+            <option value="en">🇺🇸 English</option>
+            <option value="zh">🇨🇳 中文</option>
+            <option value="hi">🇮🇳 हिन्दी</option>
+            <option value="pt">🇧🇷 Português</option>
+        </select>
+    </div>
+
+    <div class="header-section">
+        <h1 id="t-title">AI Subtitle</h1>
+        <p class="subtitle" id="t-subtitle">爆速。高精度。全自動の字幕＆翻訳AI。</p>
+    </div>
+
+    <!-- Upload Area -->
+    <div class="upload-area" id="dropZone"
+        onclick="if(e.target.tagName !== 'VIDEO' && e.target.tagName !== 'AUDIO') document.getElementById('fileInput').click()">
+        <span class="upload-icon">📁</span>
+        <p class="upload-text" id="t-upload">動画/音声をドロップするか <strong>クリックして選択</strong></p>
+        <input type="file" id="fileInput" accept="video/*,audio/*">
+
+        <!-- Media Preview Box -->
+        <div class="media-preview-container" id="mediaPreviewContainer">
+            <video class="media-preview" id="mediaPreview" controls></video>
+        </div>
+    </div>
+
+    <!-- Controls -->
+    <div class="controls-panel">
+        <div class="control-group">
+            <label id="t-target-lang">翻訳先の言語</label>
+            <select id="targetLang">
+                <option value="auto">Auto-Detect (Original)</option>
+                <option value="ja">Japanese</option>
+                <option value="en">English</option>
+                <option value="zh">Chinese</option>
+                <option value="ko">Korean</option>
+                <option value="es">Spanish</option>
+                <option value="fr">French</option>
+            </select>
+        </div>
+        <div class="control-group">
+            <label id="t-model">AIモデル</label>
+            <select id="modelSelect">
+                <option value="tiny" id="t-mod-tiny">Whisper Tiny (最速)</option>
+                <option value="base" id="t-mod-base">Whisper Base (高速)</option>
+                <option value="small" id="t-mod-small">Whisper Small (標準)</option>
+                <option value="large" id="t-mod-large">Whisper Large (高精度)</option>
+            </select>
+        </div>
+    </div>
+
+    <!-- Generate Button -->
+    <div class="action-bar">
+        <button class="btn btn-primary" id="t-btn-gen" disabled>字幕を生成する</button>
+    </div>
+
+    <!-- Success/Error Message Area -->
+    <div id="statusMessage"
+        style="margin-top: 16px; font-weight: 500; font-size: 0.95rem; text-align: center; display: none;"></div>
+
+    <!-- License & Upgrade Area -->
+    <div class="license-area">
+        <div class="usage-status" id="usageStatus">無料枠：残り <span class="highlight">3</span> 回</div>
+        <div class="pro-actions" id="proActions">
+            <!-- 3980円のStripeリンク -->
+            <a href="https://buy.stripe.com/bJe4gz3Jz0Rg4Sd8mVcjS01" class="btn-upgrade" target="_blank"
+                id="t-upgrade">Pro版へアップグレード</a>
+            <button class="btn-link" onclick="document.getElementById('licenseModal').classList.add('active')"
+                id="t-enter-license">ライセンスをお持ちの方はこちら</button>
+        </div>
+    </div>
+
+    <!-- License Modal -->
+    <div class="modal-overlay" id="licenseModal">
+        <div class="modal-box">
+            <h2 id="t-modal-title">ライセンスキーの入力</h2>
+            <p id="t-modal-desc">購入後に発行されたライセンスキー（例: cs_test_...）を入力してください。</p>
+            <input type="text" id="licenseKeyInput" placeholder="CC-TEST-XXXX-XXXX-XXXX">
+            <div class="modal-actions">
+                <button class="btn-cancel" onclick="document.getElementById('licenseModal').classList.remove('active')"
+                    id="t-btn-cancel">キャンセル</button>
+                <button class="btn btn-primary" onclick="activateLicense()" style="padding: 12px 24px; font-size: 1rem;"
+                    id="t-btn-activate">有効化</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Init Localization
+        setLanguage('ja');
+
+        // File Input Logic
+        const fileInput = document.getElementById('fileInput');
+        const generateBtn = document.getElementById('t-btn-gen');
+        const dropZone = document.getElementById('dropZone');
+        const previewContainer = document.getElementById('mediaPreviewContainer');
+        const mediaPreview = document.getElementById('mediaPreview');
+
+        fileInput.addEventListener('change', () => {
+            if (fileInput.files.length > 0) {
+                const file = fileInput.files[0];
+                dropZone.style.borderColor = "var(--primary)";
+                dropZone.style.background = "#eff6ff";
+                document.getElementById('t-upload').innerHTML = `<strong>Selected FILE: </strong><br>${file.name}`;
+                generateBtn.disabled = false;
+
+                // Show Media Preview
+                const fileURL = URL.createObjectURL(file);
+                mediaPreview.src = fileURL;
+                previewContainer.classList.add('active');
+            }
+        });
+
+        dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.classList.add('drag-over'); });
+        dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-over'));
+        dropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropZone.classList.remove('drag-over');
+            if (e.dataTransfer.files.length) {
+                fileInput.files = e.dataTransfer.files;
+                fileInput.dispatchEvent(new Event('change'));
+            }
+        });
+
+        // Transcription API Call
+        generateBtn.addEventListener('click', async () => {
+            const file = fileInput.files[0];
+            if (!file) return;
+
+            const targetLang = document.getElementById('targetLang').value;
+            const modelSize = document.getElementById('modelSelect').value;
+            const statusMsg = document.getElementById('statusMessage');
+
+            // UI Loading State
+            generateBtn.disabled = true;
+            generateBtn.innerHTML = '<span style="display:inline-block; animation: spin 1s linear infinite;">⏳</span> Processing...';
+            statusMsg.style.display = 'block';
+            statusMsg.style.color = '#3b82f6';
+            statusMsg.innerText = 'AI is analyzing the audio. This may take a few minutes...';
+
+            const formData = new FormData();
+            formData.append('file', file);
+            formData.append('target_lang', targetLang);
+            formData.append('model_size', modelSize);
+
+            try {
+                const response = await fetch('/transcribe', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                if (!response.ok) throw new Error(`Server Error: ${response.status}`);
+
+                const data = await response.json();
+
+                if (data.success) {
+                    // Trigger SRT File Download
+                    const blob = new Blob([data.srt_content], { type: 'text/plain;charset=utf-8' });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = data.filename || 'subtitles.srt';
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    URL.revokeObjectURL(url);
+
+                    statusMsg.style.color = '#059669';
+                    statusMsg.innerText = '🎉 Transcription complete! File downloading...';
+                } else {
+                    throw new Error(data.error || 'Unknown error occurred.');
+                }
+            } catch (err) {
+                statusMsg.style.color = '#ef4444';
+                statusMsg.innerText = '❌ Error: ' + err.message;
+            } finally {
+                // Reset UI
+                generateBtn.disabled = false;
+                setLanguage(document.getElementById('langSelect').value); // Reset text based on language
+            }
+        });
+
+        // License Activation Logic via GAS
+        async function activateLicense() {
+            const keyInput = document.getElementById('licenseKeyInput');
+            const key = keyInput.value.trim();
+            const btn = document.getElementById('t-btn-activate');
+
+            if (key.length < 5) {
+                alert("Please enter a valid license key.");
+                return;
+            }
+
+            // Loading state
+            const originalText = btn.innerText;
+            btn.disabled = true;
+            btn.innerText = "Verifying...";
+
+            try {
+                // Call Google Apps Script endpoint
+                const gasUrl = `https://script.google.com/macros/s/AKfycbw-GQUSSCTIbSRLMhaItLX6GZSi0iemw5Vaxo0oKB4Rg9OOf1xJ4UEBJHczY7-3LWPj_Q/exec?license_key=${encodeURIComponent(key)}`;
+
+                // Note: GAS requires no-cors if not returning proper CORS headers, 
+                // but to read the JSON response, GAS MUST return CORS headers.
+                // Assuming GAS returns proper CORS (access-control-allow-origin: *).
+                const response = await fetch(gasUrl);
+                const data = await response.json();
+
+                if (data.status === "success" && data.valid === true) {
+                    localStorage.setItem("aisub_pro", "true");
+                    localStorage.setItem("aisub_license", key);
+                    alert("🎉 Authentication successful! Pro features unlocked.");
+                    document.getElementById('licenseModal').classList.remove('active');
+                    setLanguage(document.getElementById('langSelect').value); // Refresh UI
+                } else {
+                    alert("❌ Invalid License Key. Please check and try again.");
+                }
+            } catch (err) {
+                console.error("Verification error:", err);
+
+                // Fallback for CC-TEST or cs_test keys in case GAS CORS fails during local dev
+                if (key.startsWith("CC-TEST-") || key.startsWith("cs_test_") || key === "test_key_123") {
+                    localStorage.setItem("aisub_pro", "true");
+                    localStorage.setItem("aisub_license", key);
+                    alert("🎉 [Dev Fallback] Authentication successful! Pro features unlocked.");
+                    document.getElementById('licenseModal').classList.remove('active');
+                    setLanguage(document.getElementById('langSelect').value);
+                } else {
+                    alert("❌ Network Error: Could not reach the verification server. Ensure you have internet access.");
+                }
+            } finally {
+                btn.disabled = false;
+                btn.innerText = originalText;
+            }
+        }
+    </script>
+</body>
+
+</html>
