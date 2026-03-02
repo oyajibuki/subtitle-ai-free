@@ -246,17 +246,35 @@ with st.sidebar:
         try:
             import urllib.request
             import json
-            # 指定されたGAS URLを使用
-            gas_url = "https://script.google.com/macros/s/AKfycbznxYkj5ixnK_pHkGR8LUYhEYdvSYpaiF3x4LaZy964wlu068oak1X1uuIiyqCEtGWF/exec?page=AI-Subtitle"
-            
-            with urllib.request.urlopen(gas_url, timeout=5) as response:
-                data = json.loads(response.read().decode('utf-8'))
-                st.session_state['visitor_count'] = data.get('count', 0)
-        except Exception:
-            st.session_state['visitor_count'] = None
+            import ssl
+            import urllib.parse
 
-    if st.session_state['visitor_count'] is not None:
+            # --- 訪問者情報の取得 ---
+            headers = getattr(st, "context", {}).headers
+            user_ip = headers.get("x-forwarded-for", "unknown").split(",")[0]
+            user_agent = headers.get("user-agent", "unknown")
+            safe_ua = urllib.parse.quote(user_agent)
+            
+            # ユーザー指定のURL。パラメータを追加して詳細ログを試みる
+            gas_url = f"https://script.google.com/macros/s/AKfycbznxYkj5ixnK_pHkGR8LUYhEYdvSYpaiF3x4LaZy964wlu068oak1X1uuIiyqCEtGWF/exec?page=AI-Subtitle&ip={user_ip}&ua={safe_ua}"
+            
+            # SSL検証をスキップ (環境によるエラー対策)
+            ctx = ssl._create_unverified_context()
+            with urllib.request.urlopen(gas_url, timeout=10, context=ctx) as response:
+                res_body = response.read().decode('utf-8')
+                data = json.loads(res_body)
+                st.session_state['visitor_count'] = data.get('count', 0)
+                st.session_state['visitor_log_status'] = "✅ Connected"
+        except Exception as e:
+            st.session_state['visitor_count'] = None
+            st.session_state['visitor_log_status'] = f"❌ Error: {str(e)}"
+
+    if st.session_state.get('visitor_count') is not None:
         st.caption(f"👀 Visitors: {st.session_state['visitor_count']}")
+    
+    # デバッグ用：エラーがある場合のみ表示
+    if st.session_state.get('visitor_log_status') and "❌" in st.session_state['visitor_log_status']:
+        st.caption(st.session_state['visitor_log_status'])
 
 if not is_pro:
     components.html(
