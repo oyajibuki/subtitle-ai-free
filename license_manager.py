@@ -21,7 +21,7 @@ def verify_license_key(license_key: str) -> bool:
     if license_key == "test_key_123":
         return True
     
-    # 形式の簡易チェック (CC-TEST-XXXX-XXXX-XXXX)
+    # 形式の簡易チェック (CC-XXXX-XXXX-XXXX-XXXX)
     if not license_key.startswith("CC-"):
         # 古いStripeセッションID (`cs_test_...`) の下位互換性対応
         if license_key.startswith("cs_"):

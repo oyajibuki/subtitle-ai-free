@@ -246,10 +246,11 @@ with st.sidebar:
         try:
             import urllib.request
             import json
-            url = "https://script.google.com/macros/s/AKfycbznxYkj5ixnK_pHkGR8LUYhEYdvSYpaiF3x4LaZy964wlu068oak1X1uuIiyqCEtGWF/exec?page=subtitle-ai-integration"
-            with urllib.request.urlopen(url, timeout=3) as response:
+            # あなたの新しいGASデプロイURLを使用
+            url = f"https://script.google.com/macros/library/d/1poNC4dy7SMdyaqdFNew2KeQU-7jGQjq1E5Pq0mAW9KbrUwPKRr0lswfU/13/exec?type=visit"
+            with urllib.request.urlopen(url, timeout=5) as response:
                 data = json.loads(response.read().decode('utf-8'))
-                st.session_state['visitor_count'] = data['count']
+                st.session_state['visitor_count'] = data.get('count', 0)
         except Exception:
             st.session_state['visitor_count'] = None
 
