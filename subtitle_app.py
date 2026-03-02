@@ -247,7 +247,7 @@ with st.sidebar:
             import urllib.request
             import json
             # あなたの新しいGASデプロイURLを使用
-            url = f"https://script.google.com/macros/library/d/1poNC4dy7SMdyaqdFNew2KeQU-7jGQjq1E5Pq0mAW9KbrUwPKRr0lswfU/13/exec?type=visit"
+            url = f"https://script.google.com/macros/s/AKfycbw-GQUSSCTIbSRLMhaItLX6GZSi0iemw5Vaxo0oKB4Rg9OOf1xJ4UEBJHczY7-3LWPj_Q/exec?type=visit"
             with urllib.request.urlopen(url, timeout=5) as response:
                 data = json.loads(response.read().decode('utf-8'))
                 st.session_state['visitor_count'] = data.get('count', 0)
