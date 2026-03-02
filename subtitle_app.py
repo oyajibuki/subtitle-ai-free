@@ -246,9 +246,21 @@ with st.sidebar:
         try:
             import urllib.request
             import json
+            import urllib.parse
+            
+            # --- 訪問者情報の取得 ---
+            # Streamlit 1.34+ の st.context.headers を使用
+            headers = getattr(st, "context", {}).headers
+            user_ip = headers.get("x-forwarded-for", "unknown").split(",")[0]
+            user_agent = headers.get("user-agent", "unknown")
+            
+            # 安全にエンコード
+            safe_ua = urllib.parse.quote(user_agent)
+            
             # あなたの新しいGASデプロイURLを使用
-            url = f"https://script.google.com/macros/s/AKfycbw-GQUSSCTIbSRLMhaItLX6GZSi0iemw5Vaxo0oKB4Rg9OOf1xJ4UEBJHczY7-3LWPj_Q/exec?type=visit"
-            with urllib.request.urlopen(url, timeout=5) as response:
+            gas_url = f"https://script.google.com/macros/s/AKfycbw-GQUSSCTIbSRLMhaItLX6GZSi0iemw5Vaxo0oKB4Rg9OOf1xJ4UEBJHczY7-3LWPj_Q/exec?type=visit&ip={user_ip}&ua={safe_ua}"
+            
+            with urllib.request.urlopen(gas_url, timeout=5) as response:
                 data = json.loads(response.read().decode('utf-8'))
                 st.session_state['visitor_count'] = data.get('count', 0)
         except Exception:
