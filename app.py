@@ -1,5 +1,8 @@
-from fastapi import FastAPI, File, UploadFile, Form, BackgroundTasks
+from fastapi import FastAPI, File, UploadFile, Form, BackgroundTasks, Request
 from fastapi.responses import HTMLResponse, JSONResponse, FileResponse
+import requests
+import json
+import urllib.parse
 from fastapi.staticfiles import StaticFiles
 import uvicorn
 import whisper
@@ -14,6 +17,21 @@ app = FastAPI()
 
 # Store loaded models to avoid reloading
 loaded_models = {}
+
+# GAS Visit Logging URL
+GAS_VISIT_URL = "https://script.google.com/macros/s/AKfycbznxYkj5ixnK_pHkGR8LUYhEYdvSYpaiF3x4LaZy964wlu068oak1X1uuIiyqCEtGWF/exec"
+
+def log_visitor(ip: str, ua: str):
+    """
+    Background task to log visitor to Google Sheets via GAS.
+    """
+    try:
+        # ユーザー指定のパラメータ ?page=AI-Subtitle に IP と UA を追加
+        safe_ua = urllib.parse.quote(ua)
+        url = f"{GAS_VISIT_URL}?page=AI-Subtitle&ip={ip}&ua={safe_ua}"
+        requests.get(url, timeout=10)
+    except Exception as e:
+        print(f"Logging error: {e}")
 
 def get_model(model_name: str):
     if model_name not in loaded_models:
@@ -40,7 +58,14 @@ TEMP_DIR = Path("/tmp/ai_subtitle")
 TEMP_DIR.mkdir(parents=True, exist_ok=True)
 
 @app.get("/", response_class=HTMLResponse)
-async def read_root():
+async def read_root(request: Request, background_tasks: BackgroundTasks):
+    # Get visitor info
+    ip = request.headers.get("x-forwarded-for", request.client.host).split(",")[0]
+    ua = request.headers.get("user-agent", "unknown")
+    
+    # Send log to GAS in background
+    background_tasks.add_task(log_visitor, ip, ua)
+    
     # Serve the React/HTML frontend
     html_path = Path("landing.html")
     if html_path.exists():
