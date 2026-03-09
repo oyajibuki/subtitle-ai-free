@@ -13,11 +13,17 @@ COPY ./requirements.txt .
 RUN pip install --no-cache-dir --upgrade pip setuptools wheel
 RUN pip install --no-cache-dir --upgrade -r requirements.txt
 
-# Pre-download Whisper models
+# Pre-download Whisper base model as root → /root/.cache/whisper/
 RUN python3 -c "import whisper; whisper.load_model('base')"
 
 # Create non-root user for Hugging Face Spaces
 RUN useradd -m -u 1000 user
+
+# ★ キャッシュを user ホームにコピー（実行時に user がアクセスできるように）
+RUN mkdir -p /home/user/.cache && \
+    cp -r /root/.cache/whisper /home/user/.cache/whisper && \
+    chown -R user:user /home/user/.cache
+
 USER user
 ENV PATH="/home/user/.local/bin:$PATH"
 

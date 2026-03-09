@@ -10,7 +10,6 @@ import os
 import shutil
 from pathlib import Path
 from tempfile import NamedTemporaryFile
-import pandas as pd
 from datetime import timedelta
 
 app = FastAPI()
