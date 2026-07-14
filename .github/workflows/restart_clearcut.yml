@@ -1,0 +1,16 @@
+name: Restart ClearCut Space
+on:
+  workflow_dispatch:
+
+jobs:
+  restart:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Restart HF Space
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+        run: |
+          curl -sS --fail-with-body -X POST \
+            https://huggingface.co/api/spaces/AutoCraft502/clearcut/restart \
+            -H "Authorization: Bearer $HF_TOKEN"
+          echo "restart requested"
