@@ -1,0 +1,32 @@
+name: Deploy Voice Shifter Space
+# oyajibuki/voice-shifter-web（公開）の main を HF Space AutoCraft502/voice-shifter に反映する。
+# HF_TOKEN がこのリポジトリの Secrets にしか無いので、ここから流す（restart_clearcut.yml と同じ考え方）
+on:
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout voice-shifter-web
+        uses: actions/checkout@v4
+        with:
+          repository: oyajibuki/voice-shifter-web
+          path: app
+
+      - name: Upload to Hugging Face Space
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+        run: |
+          pip install -q "huggingface_hub>=0.28,<1"
+          python - <<'PY'
+          import os
+          from huggingface_hub import HfApi
+          api = HfApi(token=os.environ["HF_TOKEN"])
+          repo = "AutoCraft502/voice-shifter"
+          api.create_repo(repo, repo_type="space", space_sdk="docker", exist_ok=True, private=False)
+          api.upload_folder(repo_id=repo, repo_type="space", folder_path="app",
+                            ignore_patterns=[".git/*", ".github/*"], delete_patterns=["*"],
+                            commit_message="Deploy from oyajibuki/voice-shifter-web")
+          print("deployed:", f"https://huggingface.co/spaces/{repo}")
+          PY
